@@ -20,7 +20,7 @@
     "url": "https://github.com/resin-io-modules/hubot-base-adapter/issues"
   },
   "dependencies": {
-	"coffee-script": "^1.12.2"
+    "coffee-script": "^1.12.2"
   },
   "devDependencies": {
     "resin-lint": "^1.4.0"
