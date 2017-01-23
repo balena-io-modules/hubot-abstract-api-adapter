@@ -26,6 +26,12 @@ Where possible, documentation is going to happen in line with the code.  The exc
 * `devDependances` should be trimmed, a few adapters provided for example code
 * `homepage` must be replaced
 
+### readme.md
+
+* The section entitled Project Description must be implemented and deleted
+* The section entitled A Hubot adapter > Installing must be updated
+* The section entitled A Hubot adapter should be updated
+
 # A [Hubot](https://github.com/github/hubot) adapter
 
 This adapter 'receives' a simple message once a second.
@@ -37,5 +43,3 @@ This adapter 'receives' a simple message once a second.
 `npm install --save hubot-base-adapter`
 
 ## Configuring
-
-No configuration options exist

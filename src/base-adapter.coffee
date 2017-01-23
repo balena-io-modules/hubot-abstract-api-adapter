@@ -17,12 +17,12 @@ class BaseAdapter extends Adapter
 		@pingCount = 0
 
 	# This function must be implemented.
-	# This puts a untargetted message to the endpoint.
+	# This puts a un-targeted message to the endpoint.
 	send: (envelope, strings...) ->
 		@robot.logger.info 'Send'
 
 	# This function must be implemented.
-	# This puts a targetted message to the endpoint.
+	# This puts a targeted message to the endpoint.
 	# Often just a trivial tweak then call send
 	reply: (envelope, strings...) ->
 		@robot.logger.info 'Reply'
