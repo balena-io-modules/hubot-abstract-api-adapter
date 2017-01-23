@@ -22,8 +22,16 @@
   "dependencies": {
     "coffee-script": "^1.12.2"
   },
+  "peerDependencies": {
+	"hubot": ">=2.0"
+  },
   "devDependencies": {
-    "resin-lint": "^1.4.0"
+	"hubot": "^2.19.0",
+	"hubot-base-adapter": "0.0.1",
+	"hubot-flowdock": "^0.7.6",
+	"hubot-mock-adapter": "^1.0.0",
+	"hubot-slack": "^4.3.1",
+	"resin-lint": "^1.4.0"
   },
   "homepage": "https://github.com/resin-io-modules/hubot-base-adapter#readme"
 }

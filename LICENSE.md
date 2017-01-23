@@ -1,4 +1,4 @@
-Copyright (c) 2011-2016 GitHub Inc.
+# Portions copyright (c) 2011-2016 GitHub Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -18,6 +18,8 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# Portions copyright (c) 2017 resin.io
 
 This project developed from the hubot code published by Github, as above.
 Contributions made by Andrew Lucas (sqweelygig) are the property of
