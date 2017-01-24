@@ -28,6 +28,11 @@ class AbstractAPIAdapter extends Adapter
 					@robot.logger.error response?.statusCode + '-' + options.url
 					done { error, response }
 			else
+				console.log @extractResults {
+					_results: 'a'
+					latest_posts: 'b'
+				}
+				console.log JSON.parse(body)
 				responseObject = JSON.parse(body)
 				results = @extractResults responseObject
 				for result in results
