@@ -16,8 +16,8 @@ class AbstractAPIAdapter extends Adapter
 		setInterval @poll, @interval
 		@emit 'connected'
 
+	# Execute and callback a series of paged requests until we run out of pages or a filter rejects
 	getUntil: (options, filter, each, done) ->
-		# Execute and callback a series of paged requests until we run out of pages or a filter rejects
 		request.get? options, (error, response, body) =>
 			if error or response?.statusCode isnt 200
 				@report { error: error, html: response?.statusCode }
@@ -29,18 +29,19 @@ class AbstractAPIAdapter extends Adapter
 					done { error, response }
 			else
 				responseObject = JSON.parse(body)
-				for result in @extractResults responseObject
+				results = @extractResults responseObject
+				for result in results
 					if filter result
 						each result
 					else
-						done null
+						done null, results
 						@report { html: response?.statusCode }
 						return
 				if @extractNext responseObject
 					options.url = @extractNext responseObject
 					@getUntil options, filter, each, done
 				else
-					done null
+					done null, results
 					@report { html: response?.statusCode }
 
 	extractResults: (obj) -> obj?._results
