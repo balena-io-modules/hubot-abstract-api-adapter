@@ -10,7 +10,7 @@ class AbstractAPIAdapter extends Adapter
 		super
 		@interval = 1000
 		@lastReport = null
-		@clearToPoll = true
+		@allowedToPoll = true
 		throw new TypeError('Abstract class')
 
 	run: ->
@@ -18,8 +18,8 @@ class AbstractAPIAdapter extends Adapter
 		@emit 'connected'
 
 	maybePoll: =>
-		if @clearToPoll
-			@clearToPoll = false
+		if @allowedToPoll
+			@allowedToPoll = false
 			@poll()
 
 	# Execute and callback a series of paged requests until we run out of pages or a filter rejects
@@ -49,10 +49,9 @@ class AbstractAPIAdapter extends Adapter
 					@processDone null, results, { html: response?.statusCode, url: options.url }, done
 
 	processDone: (error, response, report, done) =>
-		@clearToPoll = true
+		@allowedToPoll = true
 		@report report
-		if done?
-			done error, response
+		done?(error, response)
 
 	extractResults: -> throw new TypeError('Abstract method')
 
