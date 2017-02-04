@@ -63,4 +63,41 @@ class AbstractAPIAdapter extends Adapter
 			@lastReport = report
 			@robot.logger.debug report
 
+	###*
+	* Given a set of ids make best effort to publish the text and send a new set of ids to the callback
+	* @param {string} text to publish
+	* @param {object} ids to use.  ids = {user, flow, thread?}
+	* @param {function} function to receive (error, new ids object).  ids = {thread, comment?}
+	###
+	postUsing: (text, ids, callback) =>
+		requestDetails = buildRequest(ids.user, ids.flow, text, ids.thread)
+		requestObject = @robot.http(requestDetails.url)
+		requestObject.header('Accept', 'application/json')
+		for key, value of requestObject.headers
+			requestObject.header(key, value)
+		# Format taken from https://github.com/github/hubot/blob/master/docs/scripting.md#making-http-calls
+		requestObject.post(JSON.stringify(requestObject.payload)) (error, headers, body) ->
+			if not error and headers.statusCode is 200
+				parseResponse(JSON.parse(body), callback)
+			else
+				callback(error ? headers, null)
+
+	###*
+	* Given the parsed body from the Rest API, extract new ids object and pass it along the chain.
+	* You can assume, by this stage, that the HTTP request returned error is falsey and statusCode is 200.
+	* @param {object} JSON parsed body from the HTTP request
+	* @param {function} (error, ids) next function in the chain.  ids = {thread, comment?}
+	###
+	parseResponse: (response, next) -> throw new TypeError('Abstract method')
+
+	###*
+	* Given suitable details will return request details
+	* @param {string} key of the identity to use
+	* @param {string} id of the flow to update
+	* @param {string} text to post
+	* @param {string}? id of the thread to update
+	* @return {object} {url, headers, payload}
+	###
+	buildRequest: (user, flow, text, thread) -> throw new TypeError('Abstract method')
+
 module.exports = AbstractAPIAdapter
