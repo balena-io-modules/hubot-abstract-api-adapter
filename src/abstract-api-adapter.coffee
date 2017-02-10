@@ -22,10 +22,10 @@ class AbstractAPIAdapter extends Adapter
 		if not @extractNext?
 			throw new TypeError('Must implement extractNext')
 		###*
-		* Given the parsed body from the Rest API, extract new ids object and pass it along the chain.
+		* Given the parsed body from the Rest API, extract new ids object.
 		* You can assume, by this stage, that the HTTP request returned error is falsey and statusCode is 200.
 		* @param {object} Objectified body from the HTTP request
-		* @param {function} (error, ids) next function in the chain.  ids = {thread, comment?}
+		* @return {object} New ids
 		###
 		if not @parseResponse?
 			throw new TypeError('Must implement parseResponse')
