@@ -12,14 +12,14 @@ class AbstractAPIAdapter extends Adapter
 		* @param {object} Objectified body from the HTTP request
 		* @return {array} Results array
 		###
-		if not this.extractResults?
+		if not @extractResults?
 			throw new TypeError('Must implement extractResults')
 		###*
 		* Given the parsed response from the request, returns the next url
 		* @param {object} Objectified body from the HTTP request
 		* @return {string} Next page url
 		###
-		if not this.extractNext?
+		if not @extractNext?
 			throw new TypeError('Must implement extractNext')
 		###*
 		* Given the parsed body from the Rest API, extract new ids object and pass it along the chain.
@@ -27,7 +27,7 @@ class AbstractAPIAdapter extends Adapter
 		* @param {object} Objectified body from the HTTP request
 		* @param {function} (error, ids) next function in the chain.  ids = {thread, comment?}
 		###
-		if not this.parseResponse?
+		if not @parseResponse?
 			throw new TypeError('Must implement parseResponse')
 		###*
 		* Given suitable details will return request details
@@ -37,8 +37,14 @@ class AbstractAPIAdapter extends Adapter
 		* @param {string}? id of the thread to update
 		* @return {object} {url, headers, payload}
 		###
-		if not this.buildRequest?
+		if not @buildRequest?
 			throw new TypeError('Must implement buildRequest')
+		###*
+		* Triggers a poll of the API
+		* Likely to use getUntil
+		###
+		if not @poll?
+			throw new TypeError('Must implement poll')
 		super
 		@interval = 1000
 		@lastReport = null
@@ -53,22 +59,18 @@ class AbstractAPIAdapter extends Adapter
 			@pollInProgress = true
 			@poll()
 
-	# Execute and callback a series of paged requests until we run out of pages or a filter rejects
-	getUntil: (
-		options
-		each
-		filter = -> true
-		done = ->
-	) ->
+	# Execute a series of paged requests until we run out of pages or a filter rejects
+	getUntil: (options, each, filter = -> true) -> new Promise (resolve, reject) =>
 		request.get? options, (error, response, body) =>
 			if error or response?.statusCode isnt 200
 				if response?.statusCode in [429, 503]
 					@report { error: error, html: response?.statusCode, url: options.url }
 					# Retry if the error code indicates temporary outage
-					@getUntil options, each, filter, done
+					@getUntil(options, each, filter)(resolve, reject)
 				else
 					@robot.logger.error response?.statusCode + '-' + options.url
-					@processDone error, null, { error: error, html: response?.statusCode, url: options.url }, done
+					@finishPoll { error: error, html: response?.statusCode, url: options.url }
+					reject(error ? new Error("StatusCode: #{response.statusCode}"))
 			else
 				responseObject = JSON.parse(body)
 				results = @extractResults responseObject
@@ -76,33 +78,30 @@ class AbstractAPIAdapter extends Adapter
 					if filter result
 						each result
 					else
-						@processDone null, results, { html: response?.statusCode, url: options.url }, done
+						@finishPoll { html: response?.statusCode, url: options.url }
+						resolve('Reached filtered object')
 						return
 				if @extractNext responseObject
 					options.url = @extractNext responseObject
-					@getUntil options, each, filter, done
+					@getUntil(options, each, filter)(resolve, reject)
 				else
-					@processDone null, results, { html: response?.statusCode, url: options.url }, done
+					@finishPoll { html: response?.statusCode, url: options.url }
+					resolve('Reached end of pagination')
 
-	processDone: (error, response, report, done) =>
+	finishPoll: (report) ->
 		@pollInProgress = false
-		@report report
-		done?(error, response)
-
-	report: (obj) =>
-		report = JSON.stringify(obj)
+		report = JSON.stringify(report)
 		if @lastReport isnt report
 			@lastReport = report
 			@robot.logger.debug report
 
 	###*
-	* Given a set of ids make best effort to publish the text and send a new set of ids to the callback
+	* Given a set of ids make best effort to publish the text and pass on the published ids
 	* @param {string} text to publish
 	* @param {object} ids to use.  ids = {user, flow, thread?}
-	* @param {function} function to receive (error, new ids object).  ids = {thread, comment?}
 	###
-	postUsing: (text, ids, callback) =>
-		requestDetails = buildRequest(ids.user, ids.flow, text, ids.thread)
+	postUsing: (text, ids) -> new Promise (resolve, reject) =>
+		requestDetails = @buildRequest(ids.user, ids.flow, text, ids.thread)
 		requestObject = @robot.http(requestDetails.url)
 		requestObject.header('Accept', 'application/json')
 		for key, value of requestDetails.headers
@@ -111,11 +110,10 @@ class AbstractAPIAdapter extends Adapter
 		requestObject.post(JSON.stringify(requestObject.payload)) (error, headers, body) ->
 			if not error and headers.statusCode is 200
 				try
-					responseObject = JSON.parse(body)
-					parseResponse(responseObject, callback)
-				catch e
-					callback(e, null)
+					resolve(@parseResponse(JSON.parse(body)))
+				catch error
+					reject(error)
 			else
-				callback(error ? new Error("Received #{headers.statusCode} response: #{body}"), null)
+				reject(error ? new Error("Received #{headers.statusCode} response: #{body}"))
 
 module.exports = AbstractAPIAdapter
